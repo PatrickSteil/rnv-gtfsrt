@@ -241,13 +241,13 @@ func currentStop(stops []rnvclient.Stop, now time.Time) (seq int, stopID string)
 		}
 		if ref != nil {
 			if t, err := ref.GoTime(); err == nil && t.After(now) {
-				return i + 1, s.Station.Id
+				return i + 1, s.Station.GlobalID
 			}
 		}
 	}
 	// All stops passed – return last stop.
 	last := stops[len(stops)-1]
-	return len(stops), last.Station.Id
+	return len(stops), last.Station.GlobalID
 }
 
 // bestLoad picks the most informative load entry from a slice:

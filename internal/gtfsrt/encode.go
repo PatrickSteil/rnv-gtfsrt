@@ -86,20 +86,20 @@ func marshalVehiclePosition(vp *VehiclePosition) []byte {
 	var b []byte
 	b = protowire.AppendTag(b, 1, protowire.BytesType)
 	b = protowire.AppendBytes(b, marshalTripDescriptor(vp.Trip))
-	if vp.Vehicle != nil {
-		b = protowire.AppendTag(b, 8, protowire.BytesType) // ← 8, not 2
-		b = protowire.AppendBytes(b, marshalVehicleDescriptor(vp.Vehicle))
-	}
 	if vp.CurrentStopSequence != nil {
-		b = protowire.AppendTag(b, 3, protowire.VarintType) // ← 3, not 4
+		b = protowire.AppendTag(b, 3, protowire.VarintType)
 		b = protowire.AppendVarint(b, uint64(*vp.CurrentStopSequence))
 	}
 	if vp.StopID != "" {
-		b = protowire.AppendTag(b, 4, protowire.BytesType) // ← 4, not 5
+		b = protowire.AppendTag(b, 7, protowire.BytesType)
 		b = protowire.AppendString(b, vp.StopID)
 	}
+	if vp.Vehicle != nil {
+		b = protowire.AppendTag(b, 8, protowire.BytesType)
+		b = protowire.AppendBytes(b, marshalVehicleDescriptor(vp.Vehicle))
+	}
 	if vp.OccupancyStatus != nil {
-		b = protowire.AppendTag(b, 9, protowire.VarintType) // ← 9, correct
+		b = protowire.AppendTag(b, 9, protowire.VarintType)
 		b = protowire.AppendVarint(b, uint64(*vp.OccupancyStatus))
 	}
 	return b

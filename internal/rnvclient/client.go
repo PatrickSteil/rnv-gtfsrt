@@ -175,7 +175,6 @@ query ActiveJourneys($startTime: String!, $endTime: String!, $first: Int, $after
 		loads {
           station {
 			globalID
-			longName
 		  }
           forecast
           realtime
@@ -187,12 +186,11 @@ query ActiveJourneys($startTime: String!, $endTime: String!, $first: Int, $after
 		stops {
 			station {
 				globalID
-			    longName
 			}
-			plannedDeparture { isoString X}
-			plannedArrival { isoString X }
-			realtimeDeparture { isoString X }
-			realtimeArrival { isoString X }
+			plannedDeparture { isoString}
+			plannedArrival { isoString }
+			realtimeDeparture { isoString }
+			realtimeArrival { isoString }
 		}
       }
     }
