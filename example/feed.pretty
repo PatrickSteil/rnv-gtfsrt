@@ -1,0 +1,429 @@
+header {
+  gtfs_realtime_version: "2.0"
+  incrementality: FULL_DATASET
+  timestamp: 1775652740
+}
+entity {
+  id: "rnv-98-10179-01140"
+  vehicle {
+    trip {
+      start_time: "14:50:00"
+      start_date: "20260408"
+      route_id: "57-57"
+    }
+    current_stop_sequence: 3
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-10179-01140-1"
+  vehicle {
+    trip {
+      start_time: "14:50:00"
+      start_date: "20260408"
+      route_id: "57-57"
+    }
+    current_stop_sequence: 2
+    vehicle {
+      id: "645"
+    }
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-12015-01001"
+  vehicle {
+    trip {
+      start_time: "14:55:00"
+      start_date: "20260408"
+      route_id: "86-86"
+    }
+    current_stop_sequence: 1
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-12015-01001-1"
+  vehicle {
+    trip {
+      start_time: "14:55:00"
+      start_date: "20260408"
+      route_id: "86-86"
+    }
+    current_stop_sequence: 1
+    vehicle {
+      id: "644"
+    }
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-131201-01104"
+  vehicle {
+    trip {
+      start_time: "14:49:00"
+      start_date: "20260408"
+      route_id: "28-28A"
+    }
+    current_stop_sequence: 5
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-131201-01104-1"
+  vehicle {
+    trip {
+      start_time: "14:49:00"
+      start_date: "20260408"
+      route_id: "28-28A"
+    }
+    current_stop_sequence: 5
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-136924-01141"
+  vehicle {
+    trip {
+      start_time: "14:52:00"
+      start_date: "20260408"
+      route_id: "14-E"
+    }
+    current_stop_sequence: 2
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-136924-01141-1"
+  vehicle {
+    trip {
+      start_time: "14:52:00"
+      start_date: "20260408"
+      schedule_relationship: CANCELED
+      route_id: "14-E"
+    }
+    current_stop_sequence: 2
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-137496-01140"
+  vehicle {
+    trip {
+      start_time: "14:53:00"
+      start_date: "20260408"
+      route_id: "59-59"
+    }
+    current_stop_sequence: 1
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-137496-01140-1"
+  vehicle {
+    trip {
+      start_time: "14:53:00"
+      start_date: "20260408"
+      route_id: "59-59"
+    }
+    current_stop_sequence: 1
+    vehicle {
+      id: "671"
+    }
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-138278-01141"
+  vehicle {
+    trip {
+      start_time: "14:48:00"
+      start_date: "20260408"
+      route_id: "15-E"
+    }
+    current_stop_sequence: 5
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-138278-01141-1"
+  vehicle {
+    trip {
+      start_time: "14:48:00"
+      start_date: "20260408"
+      route_id: "15-E"
+    }
+    current_stop_sequence: 5
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-187192-01141"
+  vehicle {
+    trip {
+      start_time: "14:49:00"
+      start_date: "20260408"
+      route_id: "24-24"
+    }
+    current_stop_sequence: 3
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-187192-01141-1"
+  vehicle {
+    trip {
+      start_time: "14:49:00"
+      start_date: "20260408"
+      route_id: "24-24"
+    }
+    current_stop_sequence: 3
+    vehicle {
+      id: "1801"
+    }
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-187587-01141"
+  vehicle {
+    trip {
+      start_time: "14:57:00"
+      start_date: "20260408"
+      route_id: "23-23"
+    }
+    current_stop_sequence: 1
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-187587-01141-1"
+  vehicle {
+    trip {
+      start_time: "14:57:00"
+      start_date: "20260408"
+      route_id: "23-23"
+    }
+    current_stop_sequence: 1
+    vehicle {
+      id: "4138"
+    }
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-226940-01141"
+  vehicle {
+    trip {
+      start_time: "14:51:00"
+      start_date: "20260408"
+      route_id: "21-E"
+    }
+    current_stop_sequence: 2
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-226940-01141-1"
+  vehicle {
+    trip {
+      start_time: "14:51:00"
+      start_date: "20260408"
+      route_id: "21-E"
+    }
+    current_stop_sequence: 1
+    vehicle {
+      id: "1412"
+    }
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-2983-01141"
+  vehicle {
+    trip {
+      start_time: "14:50:00"
+      start_date: "20260408"
+      route_id: "16-16"
+    }
+    current_stop_sequence: 4
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-2983-01141-1"
+  vehicle {
+    trip {
+      start_time: "14:50:00"
+      start_date: "20260408"
+      route_id: "16-16"
+    }
+    current_stop_sequence: 3
+    vehicle {
+      id: "4129"
+    }
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-2984-01141"
+  vehicle {
+    trip {
+      start_time: "14:58:00"
+      start_date: "20260408"
+      route_id: "16-16"
+    }
+    current_stop_sequence: 1
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-2984-01141-1"
+  vehicle {
+    trip {
+      start_time: "14:58:00"
+      start_date: "20260408"
+      route_id: "16-16"
+    }
+    current_stop_sequence: 1
+    vehicle {
+      id: "4129"
+    }
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-32319-01140"
+  vehicle {
+    trip {
+      start_time: "15:00:00"
+      start_date: "20260408"
+      route_id: "66-66"
+    }
+    current_stop_sequence: 1
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-32319-01140-1"
+  vehicle {
+    trip {
+      start_time: "15:00:00"
+      start_date: "20260408"
+      route_id: "66-66"
+    }
+    current_stop_sequence: 1
+    vehicle {
+      id: "637"
+    }
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-36860-01140"
+  vehicle {
+    trip {
+      start_time: "14:50:00"
+      start_date: "20260408"
+      route_id: "59-59"
+    }
+    current_stop_sequence: 3
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-36860-01140-1"
+  vehicle {
+    trip {
+      start_time: "14:50:00"
+      start_date: "20260408"
+      route_id: "59-59"
+    }
+    current_stop_sequence: 2
+    vehicle {
+      id: "671"
+    }
+    occupancy_status: EMPTY
+  }
+}
+entity {
+  id: "rnv-98-38891-01001"
+  vehicle {
+    trip {
+      start_time: "14:50:30"
+      start_date: "20260408"
+      route_id: "77-77"
+    }
+    current_stop_sequence: 3
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-38891-01001-1"
+  vehicle {
+    trip {
+      start_time: "14:50:30"
+      start_date: "20260408"
+      route_id: "77-77"
+    }
+    current_stop_sequence: 3
+    vehicle {
+      id: "7605"
+    }
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-85041-01104"
+  vehicle {
+    trip {
+      start_time: "14:48:00"
+      start_date: "20260408"
+      route_id: "27-E"
+    }
+    current_stop_sequence: 3
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-85041-01104-1"
+  vehicle {
+    trip {
+      start_time: "14:48:00"
+      start_date: "20260408"
+      route_id: "27-E"
+    }
+    current_stop_sequence: 3
+    vehicle {
+      id: "803"
+    }
+    occupancy_status: EMPTY
+  }
+}
+entity {
+  id: "rnv-98-9154-01140"
+  vehicle {
+    trip {
+      start_time: "14:51:00"
+      start_date: "20260408"
+      route_id: "47-47"
+    }
+    current_stop_sequence: 2
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-98-9154-01140-1"
+  vehicle {
+    trip {
+      start_time: "14:51:00"
+      start_date: "20260408"
+      route_id: "47-47"
+    }
+    current_stop_sequence: 2
+    vehicle {
+      id: "711"
+    }
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
