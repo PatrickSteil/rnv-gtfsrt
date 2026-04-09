@@ -57,6 +57,15 @@ const (
 	Canceled    ScheduleRelationship = 3
 )
 
+// VehicleStopStatus mirrors the proto enum VehiclePosition.VehicleStopStatus.
+type VehicleStopStatus int32
+
+const (
+	IncomingAt  VehicleStopStatus = 0
+	StoppedAt   VehicleStopStatus = 1
+	InTransitTo VehicleStopStatus = 2
+)
+
 // -----------------------------------------------------------------------
 // Message types
 // -----------------------------------------------------------------------
@@ -87,6 +96,7 @@ type VehiclePosition struct {
 	Vehicle             *VehicleDescriptor
 	CurrentStopSequence *uint32
 	StopID              string
+	CurrentStatus       *VehicleStopStatus // INCOMING_AT, STOPPED_AT, IN_TRANSIT_TO
 	OccupancyStatus     *OccupancyStatus
 }
 

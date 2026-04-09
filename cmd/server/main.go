@@ -15,6 +15,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log/slog"
 	"net/http"
 	"os"
@@ -29,9 +30,16 @@ import (
 )
 
 func main() {
-	// Structured logging to stdout.
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
+	debug := flag.Bool("debug", false, "enable verbose debug logging")
+	flag.Parse()
+
+	logLevel := slog.LevelInfo
+	if *debug {
+		logLevel = slog.LevelDebug
+	}
+
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: logLevel,
 	})))
 
 	cfg, err := config.Load()
@@ -44,10 +52,8 @@ func main() {
 		"api_url", cfg.ClientAPIURL,
 		"poll_interval", cfg.PollInterval,
 		"listen", cfg.ListenAddr,
-		"station_filter_count", len(cfg.StationFilter),
 	)
 
-	// Build dependencies.
 	apiClient := rnvclient.New(
 		cfg.OAuthURL,
 		cfg.ClientID,
@@ -56,16 +62,14 @@ func main() {
 		cfg.ClientAPIURL,
 	)
 
-	poll := poller.New(apiClient, cfg.PageSize, cfg.StationFilter)
+	poll := poller.New(apiClient)
 	srv := server.New(poll)
 
-	// Run poller in background.
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	go poll.Run(ctx, cfg.PollInterval)
 
-	// Start HTTP server.
 	httpSrv := &http.Server{
 		Addr:         cfg.ListenAddr,
 		Handler:      srv.Handler(),
@@ -82,7 +86,6 @@ func main() {
 		}
 	}()
 
-	// Graceful shutdown on SIGINT/SIGTERM.
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 

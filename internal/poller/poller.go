@@ -40,12 +40,9 @@ type Poller struct {
 }
 
 // New creates a new Poller.
-func New(client *rnvclient.Client, pageSize int, _ []string) *Poller {
-	// stationFilter parameter kept for API compatibility but no longer needed:
-	// we query all active journeys globally in one call.
+func New(client *rnvclient.Client) *Poller {
 	return &Poller{
-		client:   client,
-		pageSize: pageSize,
+		client: client,
 	}
 }
 
@@ -140,25 +137,180 @@ func (p *Poller) poll(ctx context.Context) error {
 	return nil
 }
 
+// incomingAtThreshold is how close to a future arrival the vehicle must be
+// to be considered INCOMING_AT rather than IN_TRANSIT_TO.
+const incomingAtThreshold = 30 * time.Second
+
+// StopMatch holds the result of the current-stop search.
+type StopMatch struct {
+	Seq    int    // 1-based stop sequence index
+	StopID string // station GlobalID
+	Status gtfsrt.VehicleStopStatus
+}
+
+func currentStop(stops []rnvclient.Stop, now time.Time) StopMatch {
+	if len(stops) == 0 {
+		return StopMatch{Seq: 1, Status: gtfsrt.InTransitTo}
+	}
+
+	bestIdx := -1
+	bestDelta := time.Duration(1<<63 - 1)
+
+	for i, s := range stops {
+		refs := []*rnvclient.Time{
+			s.RealtimeDeparture,
+			s.PlannedDeparture,
+			s.RealtimeArrival,
+			s.PlannedArrival,
+		}
+		for _, ref := range refs {
+			if ref == nil || ref.IsoString == "" {
+				continue
+			}
+			t, err := ref.GoTime()
+			if err != nil {
+				continue
+			}
+			delta := t.Sub(now)
+			if delta < 0 {
+				delta = -delta
+			}
+			if delta < bestDelta {
+				bestDelta = delta
+				bestIdx = i
+			}
+		}
+	}
+
+	if bestIdx < 0 {
+		return StopMatch{Seq: 1, StopID: stops[0].Station.GlobalID, Status: gtfsrt.InTransitTo}
+	}
+
+	s := stops[bestIdx]
+	status := vehicleStopStatus(s, now)
+
+	return StopMatch{
+		Seq:    bestIdx + 1,
+		StopID: s.Station.GlobalID,
+		Status: status,
+	}
+}
+
+// vehicleStopStatus derives the VehicleStopStatus for a single stop at time now.
+//
+// Priority of time references: realtime over planned, departure over arrival.
+// The dwell window is defined as: arrival has passed AND departure has not.
+func vehicleStopStatus(s rnvclient.Stop, now time.Time) gtfsrt.VehicleStopStatus {
+	arrivalRef := firstValidTime(s.RealtimeArrival, s.PlannedArrival)
+	departureRef := firstValidTime(s.RealtimeDeparture, s.PlannedDeparture)
+
+	arrivalTime, hasArrival := resolveTime(arrivalRef)
+	departureTime, hasDeparture := resolveTime(departureRef)
+
+	switch {
+	case hasArrival && hasDeparture:
+		arrivalPassed := now.After(arrivalTime)
+		departurePassed := now.After(departureTime)
+		switch {
+		case arrivalPassed && !departurePassed:
+			// Inside the dwell window.
+			return gtfsrt.StoppedAt
+		case !arrivalPassed && departureTime.Sub(now) <= incomingAtThreshold:
+			// Close enough to call it incoming (arrival is imminent).
+			// This handles the edge case where arrival == departure (pass-through stop).
+			return gtfsrt.IncomingAt
+		case !arrivalPassed:
+			return gtfsrt.InTransitTo
+		default:
+			// Both passed — vehicle has departed.
+			return gtfsrt.InTransitTo
+		}
+
+	case hasDeparture && !hasArrival:
+		// No arrival data — use departure as the sole reference.
+		timeUntilDep := departureTime.Sub(now)
+		switch {
+		case timeUntilDep > 0 && timeUntilDep <= incomingAtThreshold:
+			return gtfsrt.IncomingAt
+		case timeUntilDep > 0:
+			return gtfsrt.InTransitTo
+		default:
+			// Departure passed, no arrival data — assume departed.
+			return gtfsrt.InTransitTo
+		}
+
+	case hasArrival && !hasDeparture:
+		// No departure data — use arrival as the sole reference.
+		if now.After(arrivalTime) {
+			return gtfsrt.StoppedAt
+		}
+		if arrivalTime.Sub(now) <= incomingAtThreshold {
+			return gtfsrt.IncomingAt
+		}
+		return gtfsrt.InTransitTo
+
+	default:
+		// No usable timestamps for this stop.
+		return gtfsrt.InTransitTo
+	}
+}
+
+// firstValidTime returns the first non-nil, non-empty Time from the arguments.
+func firstValidTime(refs ...*rnvclient.Time) *rnvclient.Time {
+	for _, r := range refs {
+		if r != nil && r.IsoString != "" {
+			return r
+		}
+	}
+	return nil
+}
+
+// resolveTime parses a *rnvclient.Time and reports whether it succeeded.
+func resolveTime(ref *rnvclient.Time) (time.Time, bool) {
+	if ref == nil {
+		return time.Time{}, false
+	}
+	t, err := ref.GoTime()
+	if err != nil {
+		return time.Time{}, false
+	}
+	return t, true
+}
+
+func loadAtStop(loads []rnvclient.Load, stopID string) rnvclient.Load {
+	if stopID != "" {
+		for _, l := range loads {
+			if l.Station.GlobalID == stopID { // ← adjust field name if needed
+				return l
+			}
+		}
+	}
+	return bestLoad(loads)
+}
+
 // buildEntity converts a single RNV Journey element into a GTFS-RT FeedEntity
 // with a VehiclePosition message.
 //
-// current_stop_sequence and stop_id are derived by iterating the journey's
-// stops and finding the first stop whose planned departure is in the future
-// relative to now (i.e. the vehicle has not yet departed that stop).
-// If all stops have already passed we use the last stop.
+// The occupancy status is derived from the load data at the current stop.
+// "Current stop" is the stop the vehicle is temporally closest to — either
+// the stop it is currently at, or the nearer of the two stops surrounding
+// its current position. If no stop-specific load entry exists the best
+// available load (preferring realtime) is used instead.
 func buildEntity(j rnvclient.Element) (gtfsrt.FeedEntity, bool) {
 	if j.ID == "" {
 		return gtfsrt.FeedEntity{}, false
 	}
 
-	// No load data at all → skip, nothing useful to emit.
 	if len(j.Loads) == 0 {
 		return gtfsrt.FeedEntity{}, false
 	}
 
-	// Pick the best load entry: prefer one with realtime data.
-	load := bestLoad(j.Loads)
+	// Find the current stop first so we can look up the matching load.
+	now := time.Now()
+	match := currentStop(j.Stops, now)
+
+	// Load at the current stop — falls back to bestLoad if no match.
+	load := loadAtStop(j.Loads, match.StopID)
 	occ := gtfsrt.MapLoadTypeToOccupancy(load.LoadType, load.Ratio)
 
 	routeID := ""
@@ -171,7 +323,6 @@ func buildEntity(j rnvclient.Element) (gtfsrt.FeedEntity, bool) {
 		schedRel = gtfsrt.Canceled
 	}
 
-	// Derive start_time and start_date from the plannedDeparture of the first stop.
 	var startTime, startDate string
 	if len(j.Stops) > 0 && j.Stops[0].PlannedDeparture != nil {
 		cet, _ := time.LoadLocation("Europe/Berlin")
@@ -183,30 +334,24 @@ func buildEntity(j rnvclient.Element) (gtfsrt.FeedEntity, bool) {
 	}
 
 	td := gtfsrt.TripDescriptor{
-		// No trip_id available from the RNV API.
 		RouteID:              routeID,
 		StartTime:            startTime,
 		StartDate:            startDate,
 		ScheduleRelationship: schedRel,
 	}
 
-	// Determine current stop: iterate stops and find the first whose
-	// planned departure (or arrival) is still in the future.
-	now := time.Now()
-	currentSeq, currentStopID := currentStop(j.Stops, now)
-
-	// VehicleDescriptor: use the first vehicle ID if available.
 	var vehicleDesc *gtfsrt.VehicleDescriptor
 	if len(j.Vehicles) > 0 && j.Vehicles[0] != "" {
 		vehicleDesc = &gtfsrt.VehicleDescriptor{ID: j.Vehicles[0]}
 	}
 
-	seqVal := uint32(currentSeq)
+	seqVal := uint32(match.Seq)
 	vp := &gtfsrt.VehiclePosition{
 		Trip:                td,
 		Vehicle:             vehicleDesc,
 		CurrentStopSequence: &seqVal,
-		StopID:              currentStopID,
+		StopID:              match.StopID,
+		CurrentStatus:       &match.Status,
 		OccupancyStatus:     &occ,
 	}
 
@@ -214,40 +359,6 @@ func buildEntity(j rnvclient.Element) (gtfsrt.FeedEntity, bool) {
 		ID:              fmt.Sprintf("rnv-%s", j.ID),
 		VehiclePosition: vp,
 	}, true
-}
-
-// currentStop returns the 1-based stop sequence index and stop ID of the
-// current stop for the vehicle at time now.
-//
-// We iterate the stops in order. The "current" stop is the first stop where
-// the vehicle has not yet departed, i.e. plannedDeparture > now (falling back
-// to plannedArrival if departure is absent). If the vehicle has passed all
-// stops, the last stop is returned.
-func currentStop(stops []rnvclient.Stop, now time.Time) (seq int, stopID string) {
-	if len(stops) == 0 {
-		return 1, ""
-	}
-	for i, s := range stops {
-		var ref *rnvclient.Time
-		switch {
-		case s.RealtimeDeparture != nil && s.RealtimeDeparture.IsoString != "":
-			ref = s.RealtimeDeparture
-		case s.PlannedDeparture != nil && s.PlannedDeparture.IsoString != "":
-			ref = s.PlannedDeparture
-		case s.RealtimeArrival != nil && s.RealtimeArrival.IsoString != "":
-			ref = s.RealtimeArrival
-		case s.PlannedArrival != nil && s.PlannedArrival.IsoString != "":
-			ref = s.PlannedArrival
-		}
-		if ref != nil {
-			if t, err := ref.GoTime(); err == nil && t.After(now) {
-				return i + 1, s.Station.GlobalID
-			}
-		}
-	}
-	// All stops passed – return last stop.
-	last := stops[len(stops)-1]
-	return len(stops), last.Station.GlobalID
 }
 
 // bestLoad picks the most informative load entry from a slice:

@@ -159,8 +159,8 @@ func (c *Client) query(ctx context.Context, gqlQuery string, variables map[strin
 
 // -----------------------------------------------------------------------
 const activeJourneysQuery = `
-query ActiveJourneys($startTime: String!, $endTime: String!, $first: Int, $after: String, $source: SourceType) {
-  journeys(startTime: $startTime, endTime: $endTime, first: $first, after: $after, source: $source) {
+query ActiveJourneys($startTime: String!, $endTime: String!, $after: String, $source: SourceType) {
+  journeys(startTime: $startTime, endTime: $endTime, after: $after, source: $source) {
     totalCount
     cursor
     elements {
@@ -219,8 +219,7 @@ func (c *Client) ActiveJourneys(ctx context.Context, now time.Time, windowBack, 
 		vars := map[string]any{
 			"startTime": startTime,
 			"endTime":   endTime,
-			"first":     pageSize,
-			"source":    "BOTH",
+			"source":    "REALTIMEONLY",
 		}
 		if cursor != "" {
 			vars["after"] = cursor

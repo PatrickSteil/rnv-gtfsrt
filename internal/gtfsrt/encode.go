@@ -90,6 +90,10 @@ func marshalVehiclePosition(vp *VehiclePosition) []byte {
 		b = protowire.AppendTag(b, 3, protowire.VarintType)
 		b = protowire.AppendVarint(b, uint64(*vp.CurrentStopSequence))
 	}
+	if vp.CurrentStatus != nil {
+		b = protowire.AppendTag(b, 4, protowire.VarintType)
+		b = protowire.AppendVarint(b, uint64(*vp.CurrentStatus))
+	}
 	if vp.StopID != "" {
 		b = protowire.AppendTag(b, 7, protowire.BytesType)
 		b = protowire.AppendString(b, vp.StopID)
@@ -138,23 +142,23 @@ func marshalTripDescriptor(td TripDescriptor) []byte {
 		b = protowire.AppendString(b, td.TripID)
 	}
 	if td.StartTime != "" {
-		b = protowire.AppendTag(b, 2, protowire.BytesType) // ← was 4
+		b = protowire.AppendTag(b, 2, protowire.BytesType)
 		b = protowire.AppendString(b, td.StartTime)
 	}
 	if td.StartDate != "" {
-		b = protowire.AppendTag(b, 3, protowire.BytesType) // ← was 5
+		b = protowire.AppendTag(b, 3, protowire.BytesType)
 		b = protowire.AppendString(b, td.StartDate)
 	}
 	if td.ScheduleRelationship != 0 {
-		b = protowire.AppendTag(b, 4, protowire.VarintType) // ← was 6
+		b = protowire.AppendTag(b, 4, protowire.VarintType)
 		b = protowire.AppendVarint(b, uint64(td.ScheduleRelationship))
 	}
 	if td.RouteID != "" {
-		b = protowire.AppendTag(b, 5, protowire.BytesType) // ← was 2
+		b = protowire.AppendTag(b, 5, protowire.BytesType)
 		b = protowire.AppendString(b, td.RouteID)
 	}
 	if td.DirectionID != nil {
-		b = protowire.AppendTag(b, 6, protowire.VarintType) // ← was 3
+		b = protowire.AppendTag(b, 6, protowire.VarintType)
 		b = protowire.AppendVarint(b, uint64(*td.DirectionID))
 	}
 	return b

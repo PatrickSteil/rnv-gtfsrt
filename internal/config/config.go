@@ -21,15 +21,9 @@ type Config struct {
 
 	// Polling behaviour
 	PollInterval time.Duration
-	// First/page size used when fetching stations and journeys
-	PageSize int
 
 	// HTTP server
 	ListenAddr string
-
-	// Optional: limit polling to specific station hafasIDs (comma-separated env var).
-	// Empty means "all stations".
-	StationFilter []string
 }
 
 // Load reads configuration from environment variables.
@@ -45,7 +39,6 @@ type Config struct {
 // Optional:
 //
 //	RNV_POLL_INTERVAL    – polling interval (default 30s)
-//	RNV_PAGE_SIZE        – elements per page (default 50)
 //	RNV_LISTEN_ADDR      – HTTP listen address (default :8080)
 //	RNV_STATION_FILTER   – comma-separated hafasIDs to restrict polling (default: all)
 func Load() (*Config, error) {
@@ -57,12 +50,7 @@ func Load() (*Config, error) {
 		ClientAPIURL: mustEnv("RNV_API_URL"),
 
 		PollInterval: envDuration("RNV_POLL_INTERVAL", 60*time.Second),
-		PageSize:     envInt("RNV_PAGE_SIZE", 500),
 		ListenAddr:   envStr("RNV_LISTEN_ADDR", ":8080"),
-	}
-
-	if raw := os.Getenv("RNV_STATION_FILTER"); raw != "" {
-		cfg.StationFilter = splitComma(raw)
 	}
 
 	return cfg, cfg.validate()

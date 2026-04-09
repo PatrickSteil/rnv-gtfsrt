@@ -26,6 +26,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("/data", s.handleData)
 	s.mux.HandleFunc("/status", s.handleStatus)
 	s.mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		slog.Debug("serving /health")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintln(w, "ok")
 	})
@@ -34,8 +35,10 @@ func (s *Server) routes() {
 func (s *Server) Handler() http.Handler { return s.mux }
 
 func (s *Server) handleFeed(w http.ResponseWriter, r *http.Request) {
+	slog.Debug("serving /gtfs-rt")
 	feed, feedTime := s.p.FeedBytes()
 	if feed == nil {
+		slog.Debug("feed not yet available")
 		http.Error(w, "feed not yet available, please retry", http.StatusServiceUnavailable)
 		return
 	}
@@ -47,15 +50,8 @@ func (s *Server) handleFeed(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// handleData serves the raw journeys from the last poll cycle as JSON.
-//
-// Query params:
-//
-//	?journey=<id>     – filter to a single journey ID
-//	?line=<id>        – filter to a specific line (e.g. "14-5A")
-//	?loadtype=III     – filter by loadType (I, II, III, NA)
-//	?pretty=1         – pretty-print
 func (s *Server) handleData(w http.ResponseWriter, r *http.Request) {
+	slog.Debug("serving /data")
 	snapshots := s.p.RawData()
 	if len(snapshots) == 0 {
 		http.Error(w, "data not yet available, please retry", http.StatusServiceUnavailable)
@@ -63,28 +59,6 @@ func (s *Server) handleData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	q := r.URL.Query()
-
-	// Apply filters.
-	if v := q.Get("journey"); v != "" {
-		snapshots = filterSnapshots(snapshots, func(s poller.JourneySnapshot) bool {
-			return s.Journey.ID == v
-		})
-	}
-	if v := q.Get("line"); v != "" {
-		snapshots = filterSnapshots(snapshots, func(s poller.JourneySnapshot) bool {
-			return s.Journey.Line != nil && s.Journey.Line.ID == v
-		})
-	}
-	if v := q.Get("loadtype"); v != "" {
-		snapshots = filterSnapshots(snapshots, func(s poller.JourneySnapshot) bool {
-			for _, l := range s.Journey.Loads {
-				if l.LoadType == v {
-					return true
-				}
-			}
-			return false
-		})
-	}
 
 	if len(snapshots) == 0 {
 		http.Error(w, "no journeys match the given filter", http.StatusNotFound)
@@ -110,10 +84,10 @@ func (s *Server) handleData(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
+	slog.Debug("serving /status")
 	feed, feedTime := s.p.FeedBytes()
 	snapshots := s.p.RawData()
 
-	// Count by loadType for a quick overview.
 	loadTypeCounts := map[string]int{}
 	for _, snap := range snapshots {
 		for _, l := range snap.Journey.Loads {
@@ -139,14 +113,4 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
 	_ = enc.Encode(status)
-}
-
-func filterSnapshots(ss []poller.JourneySnapshot, keep func(poller.JourneySnapshot) bool) []poller.JourneySnapshot {
-	var out []poller.JourneySnapshot
-	for _, s := range ss {
-		if keep(s) {
-			out = append(out, s)
-		}
-	}
-	return out
 }
