@@ -21,14 +21,11 @@ const (
 	windowForward = 10 * time.Minute
 )
 
-// JourneySnapshot is one active journey as returned by the API, stored for
-// the /data JSON endpoint.
 type JourneySnapshot struct {
 	FetchedAt time.Time         `json:"fetched_at"`
 	Journey   rnvclient.Element `json:"journey"`
 }
 
-// Poller manages the polling lifecycle and exposes the latest FeedMessage.
 type Poller struct {
 	client   *rnvclient.Client
 	pageSize int
@@ -39,14 +36,13 @@ type Poller struct {
 	rawData  []JourneySnapshot // latest raw API data for /data endpoint
 }
 
-// New creates a new Poller.
 func New(client *rnvclient.Client) *Poller {
 	return &Poller{
-		client: client,
+		client:   client,
+		pageSize: 100,
 	}
 }
 
-// Run starts the polling loop. It blocks until ctx is cancelled.
 func (p *Poller) Run(ctx context.Context, interval time.Duration) {
 	slog.InfoContext(ctx, "poller starting",
 		"interval", interval,
@@ -75,14 +71,12 @@ func (p *Poller) Run(ctx context.Context, interval time.Duration) {
 	}
 }
 
-// FeedBytes returns the latest serialised GTFS-RT protobuf feed and its age.
 func (p *Poller) FeedBytes() ([]byte, time.Time) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	return p.feed, p.feedTime
 }
 
-// RawData returns the latest journey snapshots from the RNV API.
 func (p *Poller) RawData() []JourneySnapshot {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
@@ -90,10 +84,6 @@ func (p *Poller) RawData() []JourneySnapshot {
 	copy(out, p.rawData)
 	return out
 }
-
-// -----------------------------------------------------------------------
-// Internal
-// -----------------------------------------------------------------------
 
 func (p *Poller) poll(ctx context.Context) error {
 	start := time.Now()
@@ -169,6 +159,7 @@ func currentStop(stops []rnvclient.Stop, now time.Time) StopMatch {
 			}
 			t, err := ref.GoTime()
 			if err != nil {
+				slog.Warn("invalid timestamp in response", "err", err, "stop_id", s.Station.Id)
 				continue
 			}
 			delta := t.Sub(now)
@@ -271,31 +262,19 @@ func resolveTime(ref *rnvclient.Time) (time.Time, bool) {
 		return time.Time{}, false
 	}
 	t, err := ref.GoTime()
-	if err != nil {
-		return time.Time{}, false
-	}
-	return t, true
+	return t, (err == nil)
 }
 
 func loadAtStop(loads []rnvclient.Load, stopID string) rnvclient.Load {
 	if stopID != "" {
 		for _, l := range loads {
-			if l.Station.GlobalID == stopID { // ← adjust field name if needed
+			if l.Station.GlobalID == stopID {
 				return l
 			}
 		}
 	}
 	return bestLoad(loads)
 }
-
-// buildEntity converts a single RNV Journey element into a GTFS-RT FeedEntity
-// with a VehiclePosition message.
-//
-// The occupancy status is derived from the load data at the current stop.
-// "Current stop" is the stop the vehicle is temporally closest to — either
-// the stop it is currently at, or the nearer of the two stops surrounding
-// its current position. If no stop-specific load entry exists the best
-// available load (preferring realtime) is used instead.
 func buildEntity(j rnvclient.Element) (gtfsrt.FeedEntity, bool) {
 	if j.ID == "" {
 		return gtfsrt.FeedEntity{}, false
@@ -325,12 +304,12 @@ func buildEntity(j rnvclient.Element) (gtfsrt.FeedEntity, bool) {
 
 	var startTime, startDate string
 	if len(j.Stops) > 0 && j.Stops[0].PlannedDeparture != nil {
-		cet, _ := time.LoadLocation("Europe/Berlin")
-		if t, err := j.Stops[0].PlannedDeparture.GoTime(); err == nil {
-			local := t.In(cet)
-			startTime = local.Format("15:04:05")
-			startDate = local.Format("20060102")
+		t, err := j.Stops[0].PlannedDeparture.GoTime()
+		if err != nil {
+			slog.Warn("invalid timestamp in response", "err", err, "stop_id", j.Stops[0].Station.Id)
 		}
+		startTime = t.Format("15:04:05")
+		startDate = t.Format("20060102")
 	}
 
 	td := gtfsrt.TripDescriptor{
@@ -361,19 +340,15 @@ func buildEntity(j rnvclient.Element) (gtfsrt.FeedEntity, bool) {
 	}, true
 }
 
-// bestLoad picks the most informative load entry from a slice:
-// prefers realtime over statistical, highest ratio breaks ties.
 func bestLoad(loads []rnvclient.Load) rnvclient.Load {
 	best := loads[0]
 	for _, l := range loads[1:] {
-		// Prefer entries that have realtime data.
 		bestHasRT := best.Realtime != nil
 		lHasRT := l.Realtime != nil
 		if lHasRT && !bestHasRT {
 			best = l
 			continue
 		}
-		// Among equal realtime availability, pick higher ratio (more informative).
 		if lHasRT == bestHasRT && l.Ratio > best.Ratio {
 			best = l
 		}

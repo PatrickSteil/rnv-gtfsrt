@@ -3,18 +3,16 @@ package rnvclient
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 )
 
-// TokenResponse is the JSON body returned by the OAuth2 token endpoint.
-// Azure AD returns expires_in as a string (e.g. "3600"), not an int.
 type TokenResponse struct {
 	AccessToken string      `json:"access_token"`
 	ExpiresIn   json.Number `json:"expires_in"`
 	TokenType   string      `json:"token_type"`
 }
 
-// graphqlRequest is the POST body sent to the GraphQL endpoint.
 type graphqlRequest struct {
 	Query     string         `json:"query"`
 	Variables map[string]any `json:"variables,omitempty"`
@@ -39,30 +37,40 @@ type Station struct {
 	Location  GeoPoint `json:"geopoint"`
 }
 
-// Time mirrors the GraphQL Time type.
 type Time struct {
 	IsoString string `json:"isoString"`
-	X         int64  `json:"X"` // Unix seconds UTC
+	// Anzahl der Sekunden seit dem 1.1.1970T00:00:00 UTC+0
+	X      int64 `json:"X"`
+	OffSet int   `json:"offSet"`
 }
 
-// GoTime parses the ISO-8601 string into a stdlib time.Time.
 func (t *Time) GoTime() (time.Time, error) {
-	if t == nil || t.IsoString == "" {
+	if t == nil || (t.X == 0 && t.IsoString == "") {
 		return time.Time{}, nil
 	}
-	return time.Parse(time.RFC3339, t.IsoString)
+
+	if t.X != 0 {
+		zone := time.FixedZone("Local", t.OffSet*60)
+		return time.Unix(t.X, 0).In(zone), nil
+	}
+
+	if t.IsoString != "" {
+		parsed, err := time.Parse(time.RFC3339, t.IsoString)
+		if err != nil {
+			return time.Time{}, fmt.Errorf("failed to parse isoString %q: %w", t.IsoString, err)
+		}
+		return parsed, nil
+	}
+
+	return time.Time{}, fmt.Errorf("time object contains no valid X or IsoString data")
 }
 
-// SearchResult mirrors the GraphQL SearchResult type.
 type SearchResult struct {
 	TotalCount int       `json:"totalCount"`
 	Cursor     string    `json:"cursor"`
 	Elements   []Element `json:"elements"`
 }
 
-// Element is the union type returned inside SearchResult.
-// Only the fields we care about are populated; GraphQL inline fragments
-// are used to fill them selectively.
 type Element struct {
 	ID                string   `json:"id"`
 	LoadsForecastType string   `json:"loadsForecastType"`
@@ -74,7 +82,6 @@ type Element struct {
 	Cancelled         bool     `json:"cancelled"`
 }
 
-// Load mirrors the GraphQL Load type.
 type Load struct {
 	Forecast float64  `json:"forecast"`
 	Realtime *float64 `json:"realtime"` // nullable
@@ -84,7 +91,6 @@ type Load struct {
 	Station  Station  `json:"station"`
 }
 
-// Stop mirrors the GraphQL Stop type.
 type Stop struct {
 	Station           Station `json:"station"`
 	PlannedDeparture  *Time   `json:"plannedDeparture"`
@@ -93,21 +99,18 @@ type Stop struct {
 	RealtimeArrival   *Time   `json:"realtimeArrival"`
 }
 
-// Line mirrors the relevant fields of the GraphQL Line type.
 type Line struct {
 	ID string `json:"id"`
 }
 
-// -----------------------------------------------------------------------
-// Query-specific response types
-// -----------------------------------------------------------------------
-
-// StationsData is the top-level data for a stations query.
 type StationsData struct {
 	Stations SearchResult `json:"stations"`
 }
 
-// StationJourneysData is the top-level data for a station + journeys query.
 type StationJourneysData struct {
 	Station Station `json:"station"`
+}
+
+type ActiveJourneysData struct {
+	Journeys SearchResult `json:"journeys"`
 }

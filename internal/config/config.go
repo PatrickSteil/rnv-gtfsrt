@@ -4,7 +4,6 @@ package config
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 )
 
@@ -74,7 +73,6 @@ func (c *Config) validate() error {
 	return nil
 }
 
-// mustEnv returns the value of an env var, or empty string (validation handled later).
 func mustEnv(key string) string {
 	return os.Getenv(key)
 }
@@ -86,15 +84,6 @@ func envStr(key, def string) string {
 	return def
 }
 
-func envInt(key string, def int) int {
-	if v := os.Getenv(key); v != "" {
-		if n, err := strconv.Atoi(v); err == nil {
-			return n
-		}
-	}
-	return def
-}
-
 func envDuration(key string, def time.Duration) time.Duration {
 	if v := os.Getenv(key); v != "" {
 		if d, err := time.ParseDuration(v); err == nil {
@@ -102,27 +91,4 @@ func envDuration(key string, def time.Duration) time.Duration {
 		}
 	}
 	return def
-}
-
-func splitComma(s string) []string {
-	var out []string
-	for _, part := range splitRunes(s, ',') {
-		if part != "" {
-			out = append(out, part)
-		}
-	}
-	return out
-}
-
-func splitRunes(s string, sep rune) []string {
-	var out []string
-	start := 0
-	for i, r := range s {
-		if r == sep {
-			out = append(out, s[start:i])
-			start = i + 1
-		}
-	}
-	out = append(out, s[start:])
-	return out
 }

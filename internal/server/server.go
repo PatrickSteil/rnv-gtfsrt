@@ -21,21 +21,47 @@ func New(p *poller.Poller) *Server {
 	return s
 }
 
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (rw *responseWriter) WriteHeader(code int) {
+	rw.statusCode = code
+	rw.ResponseWriter.WriteHeader(code)
+}
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		wrapped := &responseWriter{w, http.StatusOK}
+
+		next.ServeHTTP(wrapped, r)
+
+		slog.Info("http request",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"status", wrapped.statusCode,
+			"duration", time.Since(start),
+		)
+	})
+}
+
 func (s *Server) routes() {
 	s.mux.HandleFunc("/gtfs-rt", s.handleFeed)
 	s.mux.HandleFunc("/data", s.handleData)
 	s.mux.HandleFunc("/status", s.handleStatus)
 	s.mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		slog.Debug("serving /health")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintln(w, "ok")
 	})
 }
 
-func (s *Server) Handler() http.Handler { return s.mux }
+func (s *Server) Handler() http.Handler {
+	return loggingMiddleware(s.mux)
+}
 
 func (s *Server) handleFeed(w http.ResponseWriter, r *http.Request) {
-	slog.Debug("serving /gtfs-rt")
 	feed, feedTime := s.p.FeedBytes()
 	if feed == nil {
 		slog.Debug("feed not yet available")
@@ -51,19 +77,14 @@ func (s *Server) handleFeed(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleData(w http.ResponseWriter, r *http.Request) {
-	slog.Debug("serving /data")
 	snapshots := s.p.RawData()
 	if len(snapshots) == 0 {
+		slog.Debug("data not yet available")
 		http.Error(w, "data not yet available, please retry", http.StatusServiceUnavailable)
 		return
 	}
 
 	q := r.URL.Query()
-
-	if len(snapshots) == 0 {
-		http.Error(w, "no journeys match the given filter", http.StatusNotFound)
-		return
-	}
 
 	_, feedTime := s.p.FeedBytes()
 	response := map[string]any{
@@ -84,7 +105,6 @@ func (s *Server) handleData(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
-	slog.Debug("serving /status")
 	feed, feedTime := s.p.FeedBytes()
 	snapshots := s.p.RawData()
 

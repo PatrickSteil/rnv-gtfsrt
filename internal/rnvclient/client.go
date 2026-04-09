@@ -41,9 +41,7 @@ func New(oauthURL, clientID, clientSecret, resourceID, apiURL string) *Client {
 	}
 }
 
-// -----------------------------------------------------------------------
 // Token management
-// -----------------------------------------------------------------------
 
 func (c *Client) token(ctx context.Context) (string, error) {
 	c.mu.Lock()
@@ -95,9 +93,7 @@ func (c *Client) token(ctx context.Context) (string, error) {
 	return c.accessToken, nil
 }
 
-// -----------------------------------------------------------------------
 // GraphQL execution
-// -----------------------------------------------------------------------
 
 func (c *Client) query(ctx context.Context, gqlQuery string, variables map[string]any, dest any) error {
 	token, err := c.token(ctx)
@@ -159,8 +155,20 @@ func (c *Client) query(ctx context.Context, gqlQuery string, variables map[strin
 
 // -----------------------------------------------------------------------
 const activeJourneysQuery = `
-query ActiveJourneys($startTime: String!, $endTime: String!, $after: String, $source: SourceType) {
-  journeys(startTime: $startTime, endTime: $endTime, after: $after, source: $source) {
+query ActiveJourneys(
+  $startTime: String!
+  $endTime: String!
+  $after: String
+  $first: Int
+  $source: SourceType
+) {
+  journeys(
+    startTime: $startTime
+    endTime: $endTime
+    after: $after
+    first: $first
+    source: $source
+  ) {
     totalCount
     cursor
     elements {
@@ -187,42 +195,46 @@ query ActiveJourneys($startTime: String!, $endTime: String!, $after: String, $so
 			station {
 				globalID
 			}
-			plannedDeparture { isoString}
-			plannedArrival { isoString }
-			realtimeDeparture { isoString }
-			realtimeArrival { isoString }
+			plannedDeparture { isoString X offSet }
+			plannedArrival { isoString X offSet }
+			realtimeDeparture { isoString X offSet }
+			realtimeArrival { isoString X offSet }
 		}
       }
     }
   }
 }`
 
-// ActiveJourneysData is the top-level response for the active journeys query.
-type ActiveJourneysData struct {
-	Journeys SearchResult `json:"journeys"`
-}
+func (c *Client) ActiveJourneys(
+	ctx context.Context,
+	now time.Time,
+	windowBack, windowForward time.Duration,
+	pageSize int,
+) ([]Element, error) {
 
-// ActiveJourneys fetches all currently-running journeys with their occupancy,
-// paging through the full result set automatically.
-//
-// windowBack/windowForward control how far before/after now to look.
-// For "only currently active" use windowBack=2min, windowForward=1min.
-func (c *Client) ActiveJourneys(ctx context.Context, now time.Time, windowBack, windowForward time.Duration, pageSize int) ([]Element, error) {
 	startTime := now.Add(-windowBack).UTC().Format(time.RFC3339)
 	endTime := now.Add(windowForward).UTC().Format(time.RFC3339)
 
-	var all []Element
-	var cursor string
-	page := 0
-
+	var (
+		all    []Element
+		cursor *string
+		page   int
+	)
+	const maxPages = 1000
 	for {
+		if page >= maxPages {
+			return nil, fmt.Errorf("pagination exceeded %d pages", maxPages)
+		}
+
 		vars := map[string]any{
 			"startTime": startTime,
 			"endTime":   endTime,
 			"source":    "REALTIMEONLY",
+			"first":     pageSize,
 		}
-		if cursor != "" {
-			vars["after"] = cursor
+
+		if cursor != nil {
+			vars["after"] = *cursor
 		}
 
 		var data ActiveJourneysData
@@ -230,29 +242,40 @@ func (c *Client) ActiveJourneys(ctx context.Context, now time.Time, windowBack, 
 			return nil, fmt.Errorf("fetching active journeys (page %d): %w", page, err)
 		}
 
-		all = append(all, data.Journeys.Elements...)
+		elems := data.Journeys.Elements
+		all = append(all, elems...)
 		page++
 
 		slog.DebugContext(ctx, "active journeys page fetched",
 			"page", page,
-			"fetched", len(all),
-			"total", data.Journeys.TotalCount,
+			"page_size", len(elems),
+			"total_fetched", len(all),
+			"total_available", data.Journeys.TotalCount,
 			"cursor", data.Journeys.Cursor,
 		)
 
-		if data.Journeys.Cursor == "" || len(data.Journeys.Elements) == 0 {
+		if len(elems) == 0 {
 			break
 		}
+
+		if data.Journeys.Cursor == "" {
+			break
+		}
+
 		if len(all) >= data.Journeys.TotalCount {
 			break
 		}
-		cursor = data.Journeys.Cursor
+
+		cursor = &data.Journeys.Cursor
 	}
 
 	slog.InfoContext(ctx, "fetched active journeys",
 		"count", len(all),
+		"pages", page,
+		"page_size", pageSize,
 		"window_start", startTime,
 		"window_end", endTime,
 	)
+
 	return all, nil
 }
