@@ -38,9 +38,8 @@ type Config struct {
 //
 // Optional:
 //
-//	RNV_POLL_INTERVAL    – polling interval (default 30s)
+//	RNV_POLL_INTERVAL    – polling interval (default 60s)
 //	RNV_LISTEN_ADDR      – HTTP listen address (default :8080)
-//	RNV_STATION_FILTER   – comma-separated hafasIDs to restrict polling (default: all)
 func Load() (*Config, error) {
 	cfg := &Config{
 		OAuthURL:     mustEnv("RNV_OAUTH_URL"),

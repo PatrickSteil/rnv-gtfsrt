@@ -22,7 +22,7 @@ This project polls the RNV OpenData API for vehicle occupancy data and exposes i
   - API URL
 
 ## Setup
-Set the required environment variables:
+Set the environment variables:
 
 ```bash
 export RNV_OAUTH_URL=<oauth-url>
@@ -30,6 +30,8 @@ export RNV_CLIENT_ID=<client-id>
 export RNV_CLIENT_SECRET=<client-secret>
 export RNV_RESOURCE_ID=<resource-id>
 export RNV_API_URL=<api-url>
+export RNV_POLL_INTERVAL=60 (optional)
+export RNV_LISTEN_ADDR=8080 (optional)
 ```
 
 Building the executables
