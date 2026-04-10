@@ -37,7 +37,7 @@ type Config struct {
 //
 // Optional:
 //
-//	RNV_POLL_INTERVAL    – polling interval (default 60s)
+//	RNV_POLL_INTERVAL    – polling interval (default 30s)
 //	RNV_LISTEN_ADDR      – HTTP listen address (default :8080)
 func Load() (*Config, error) {
 	cfg := &Config{
@@ -47,7 +47,7 @@ func Load() (*Config, error) {
 		ResourceID:   mustEnv("RNV_RESOURCE_ID"),
 		ClientAPIURL: mustEnv("RNV_API_URL"),
 
-		PollInterval: envDuration("RNV_POLL_INTERVAL", 60*time.Second),
+		PollInterval: envDuration("RNV_POLL_INTERVAL", 30*time.Second),
 		ListenAddr:   envStr("RNV_LISTEN_ADDR", ":8080"),
 	}
 
