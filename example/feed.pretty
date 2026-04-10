@@ -1,404 +1,204 @@
 header {
   gtfs_realtime_version: "2.0"
   incrementality: FULL_DATASET
-  timestamp: 1775653579
+  timestamp: 1775809499
 }
 entity {
-  id: "rnv-98-10181-01140"
+  id: "rnv-100-10047-01113-1"
   vehicle {
     trip {
-      start_time: "15:10:00"
-      start_date: "20260408"
-      route_id: "57-57"
-    }
-    current_stop_sequence: 1
-    stop_id: "de:08222:2315"
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-10181-01140-1"
-  vehicle {
-    trip {
-      start_time: "15:10:00"
-      start_date: "20260408"
-      route_id: "57-57"
-    }
-    current_stop_sequence: 1
-    stop_id: "de:08222:2315"
-    vehicle {
-      id: "645"
-    }
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-131202-01104"
-  vehicle {
-    trip {
-      start_time: "15:02:00"
-      start_date: "20260408"
-      route_id: "28-28A"
-    }
-    current_stop_sequence: 5
-    stop_id: "de:08221:6140"
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-131202-01104-1"
-  vehicle {
-    trip {
-      start_time: "15:02:00"
-      start_date: "20260408"
-      route_id: "28-28A"
-    }
-    current_stop_sequence: 5
-    stop_id: "de:08221:6140"
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-137503-01140"
-  vehicle {
-    trip {
-      start_time: "15:10:00"
-      start_date: "20260408"
+      start_time: "10:30:00"
+      start_date: "20260410"
       route_id: "59-59"
     }
     current_stop_sequence: 1
+    current_status: IN_TRANSIT_TO
     stop_id: "de:08222:2567"
     occupancy_status: NO_DATA_AVAILABLE
   }
 }
 entity {
-  id: "rnv-98-137503-01140-1"
+  id: "rnv-100-11024-01113-1"
   vehicle {
     trip {
-      start_time: "15:10:00"
-      start_date: "20260408"
-      route_id: "59-59"
+      start_time: "10:21:00"
+      start_date: "20260410"
+      route_id: "68-68"
     }
-    current_stop_sequence: 1
-    stop_id: "de:08222:2567"
-    vehicle {
-      id: "639"
-    }
+    current_stop_sequence: 6
+    current_status: INCOMING_AT
+    stop_id: "de:08222:2514"
     occupancy_status: NO_DATA_AVAILABLE
   }
 }
 entity {
-  id: "rnv-98-13799-01001"
+  id: "rnv-100-113696-01105-1"
   vehicle {
     trip {
-      start_time: "15:06:00"
-      start_date: "20260408"
-      route_id: "85-85"
-    }
-    current_stop_sequence: 2
-    stop_id: "de:07314:2168"
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-13799-01001-1"
-  vehicle {
-    trip {
-      start_time: "15:06:00"
-      start_date: "20260408"
-      route_id: "85-85"
-    }
-    current_stop_sequence: 2
-    stop_id: "de:07314:2168"
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-14614-01140"
-  vehicle {
-    trip {
-      start_time: "15:03:00"
-      start_date: "20260408"
-      route_id: "48-48"
-    }
-    current_stop_sequence: 5
-    stop_id: "de:08222:2547"
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-14614-01140-1"
-  vehicle {
-    trip {
-      start_time: "15:03:00"
-      start_date: "20260408"
-      route_id: "48-48"
+      start_time: "10:22:00"
+      start_date: "20260410"
+      route_id: "28-28A"
     }
     current_stop_sequence: 3
-    stop_id: "de:08222:2548"
-    vehicle {
-      id: "886"
-    }
-    occupancy_status: EMPTY
-  }
-}
-entity {
-  id: "rnv-98-186936-01141"
-  vehicle {
-    trip {
-      start_time: "15:07:00"
-      start_date: "20260408"
-      route_id: "23-23"
-    }
-    current_stop_sequence: 1
-    stop_id: "de:08221:1146"
+    current_status: INCOMING_AT
+    stop_id: "de:08221:7073"
     occupancy_status: NO_DATA_AVAILABLE
   }
 }
 entity {
-  id: "rnv-98-186936-01141-1"
+  id: "rnv-100-14828-01113-1"
   vehicle {
     trip {
-      start_time: "15:07:00"
-      start_date: "20260408"
-      route_id: "23-23"
-    }
-    current_stop_sequence: 1
-    stop_id: "de:08221:1146"
-    vehicle {
-      id: "3287"
-    }
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-2986-01141"
-  vehicle {
-    trip {
-      start_time: "15:10:00"
-      start_date: "20260408"
-      route_id: "16-16"
-    }
-    current_stop_sequence: 1
-    stop_id: "de:08222:4048"
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-2986-01141-1"
-  vehicle {
-    trip {
-      start_time: "15:10:00"
-      start_date: "20260408"
-      route_id: "16-16"
-    }
-    current_stop_sequence: 1
-    stop_id: "de:08222:4048"
-    vehicle {
-      id: "4129"
-    }
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-32320-01140"
-  vehicle {
-    trip {
-      start_time: "15:02:00"
-      start_date: "20260408"
-      route_id: "66-66"
+      start_time: "10:20:00"
+      start_date: "20260410"
+      route_id: "52-52"
     }
     current_stop_sequence: 4
-    stop_id: "de:08222:2707"
+    current_status: INCOMING_AT
+    stop_id: "de:08222:2556"
+    vehicle {
+      id: "752"
+    }
     occupancy_status: NO_DATA_AVAILABLE
   }
 }
 entity {
-  id: "rnv-98-32320-01140-1"
+  id: "rnv-100-16258-01113-1"
   vehicle {
     trip {
-      start_time: "15:02:00"
-      start_date: "20260408"
+      start_time: "10:20:00"
+      start_date: "20260410"
+      route_id: "66-66"
+    }
+    current_stop_sequence: 2
+    current_status: STOPPED_AT
+    stop_id: "de:08222:3018"
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-100-16259-01113-1"
+  vehicle {
+    trip {
+      start_time: "10:22:00"
+      start_date: "20260410"
       route_id: "66-66"
     }
     current_stop_sequence: 3
+    current_status: INCOMING_AT
     stop_id: "de:08222:2644"
-    vehicle {
-      id: "637"
-    }
     occupancy_status: NO_DATA_AVAILABLE
   }
 }
 entity {
-  id: "rnv-98-32360-01140"
+  id: "rnv-100-198032-00827-1"
   vehicle {
     trip {
-      start_time: "15:03:00"
-      start_date: "20260408"
-      route_id: "68-68"
-    }
-    current_stop_sequence: 4
-    stop_id: "de:08222:3025"
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-32360-01140-1"
-  vehicle {
-    trip {
-      start_time: "15:03:00"
-      start_date: "20260408"
-      route_id: "68-68"
-    }
-    current_stop_sequence: 2
-    stop_id: "de:08222:3026"
-    vehicle {
-      id: "861"
-    }
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-35441-01140"
-  vehicle {
-    trip {
-      start_time: "15:02:00"
-      start_date: "20260408"
-      route_id: "43-43"
-    }
-    current_stop_sequence: 4
-    stop_id: "de:08222:2597"
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-35441-01140-1"
-  vehicle {
-    trip {
-      start_time: "15:02:00"
-      start_date: "20260408"
-      route_id: "43-43"
-    }
-    current_stop_sequence: 4
-    stop_id: "de:08222:2597"
-    vehicle {
-      id: "6261"
-    }
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-38892-01001"
-  vehicle {
-    trip {
-      start_time: "15:05:00"
-      start_date: "20260408"
-      route_id: "77-77"
-    }
-    current_stop_sequence: 2
-    stop_id: "de:07314:7520"
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-38892-01001-1"
-  vehicle {
-    trip {
-      start_time: "15:05:00"
-      start_date: "20260408"
-      route_id: "77-77"
-    }
-    current_stop_sequence: 2
-    stop_id: "de:07314:7520"
-    vehicle {
-      id: "7605"
-    }
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-48706-01140"
-  vehicle {
-    trip {
-      start_time: "15:05:00"
-      start_date: "20260408"
-      route_id: "40-40"
-    }
-    current_stop_sequence: 3
-    stop_id: "de:08222:2545"
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-48706-01140-1"
-  vehicle {
-    trip {
-      start_time: "15:05:00"
-      start_date: "20260408"
-      route_id: "40-40"
-    }
-    current_stop_sequence: 3
-    stop_id: "de:08222:2545"
-    vehicle {
-      id: "712"
-    }
-    occupancy_status: FEW_SEATS_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-8785-01140"
-  vehicle {
-    trip {
-      start_time: "15:05:00"
-      start_date: "20260408"
-      route_id: "40-40"
-    }
-    current_stop_sequence: 2
-    stop_id: "de:08222:2592"
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-8785-01140-1"
-  vehicle {
-    trip {
-      start_time: "15:05:00"
-      start_date: "20260408"
-      route_id: "40-40"
-    }
-    current_stop_sequence: 2
-    stop_id: "de:08222:2592"
-    vehicle {
-      id: "6275"
-    }
-    occupancy_status: NO_DATA_AVAILABLE
-  }
-}
-entity {
-  id: "rnv-98-9156-01140"
-  vehicle {
-    trip {
-      start_time: "15:11:00"
-      start_date: "20260408"
-      route_id: "47-47"
+      start_time: "10:27:00"
+      start_date: "20260410"
+      route_id: "23-23"
     }
     current_stop_sequence: 1
-    stop_id: "de:08222:2525"
+    current_status: IN_TRANSIT_TO
+    stop_id: "de:08221:1146"
+    vehicle {
+      id: "1401"
+    }
     occupancy_status: NO_DATA_AVAILABLE
   }
 }
 entity {
-  id: "rnv-98-9156-01140-1"
+  id: "rnv-100-24144-00827-1"
   vehicle {
     trip {
-      start_time: "15:11:00"
-      start_date: "20260408"
-      route_id: "47-47"
+      start_time: "10:30:00"
+      start_date: "20260410"
+      route_id: "16-16"
     }
     current_stop_sequence: 1
-    stop_id: "de:08222:2525"
+    current_status: IN_TRANSIT_TO
+    stop_id: "de:08222:4048"
     vehicle {
-      id: "711"
+      id: "5763"
+    }
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-100-31488-01113-1"
+  vehicle {
+    trip {
+      start_time: "10:30:00"
+      start_date: "20260410"
+      route_id: "57-57"
+    }
+    current_stop_sequence: 1
+    current_status: IN_TRANSIT_TO
+    stop_id: "de:08222:2315"
+    vehicle {
+      id: "884"
+    }
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-100-31572-01113-1"
+  vehicle {
+    trip {
+      start_time: "10:21:00"
+      start_date: "20260410"
+      route_id: "47-47"
+    }
+    current_stop_sequence: 5
+    current_status: INCOMING_AT
+    stop_id: "de:08222:2537"
+    vehicle {
+      id: "710"
+    }
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-100-317108-01105-1"
+  vehicle {
+    trip {
+      start_time: "10:22:00"
+      start_date: "20260410"
+      route_id: "38-38"
+    }
+    current_stop_sequence: 4
+    current_status: INCOMING_AT
+    stop_id: "de:08221:6825"
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-100-34391-01002-1"
+  vehicle {
+    trip {
+      start_time: "10:25:00"
+      start_date: "20260410"
+      route_id: "77-77"
+    }
+    current_stop_sequence: 1
+    current_status: INCOMING_AT
+    stop_id: "de:07314:2066"
+    occupancy_status: NO_DATA_AVAILABLE
+  }
+}
+entity {
+  id: "rnv-100-8083-01002-1"
+  vehicle {
+    trip {
+      start_time: "10:26:00"
+      start_date: "20260410"
+      route_id: "85-85"
+    }
+    current_stop_sequence: 1
+    current_status: IN_TRANSIT_TO
+    stop_id: "de:07314:2178"
+    vehicle {
+      id: "664"
     }
     occupancy_status: NO_DATA_AVAILABLE
   }
