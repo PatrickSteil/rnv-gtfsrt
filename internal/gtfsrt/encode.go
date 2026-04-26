@@ -137,29 +137,32 @@ func marshalVehicleDescriptor(vd *VehicleDescriptor) []byte {
 
 func marshalTripDescriptor(td TripDescriptor) []byte {
 	var b []byte
+	// Field numbers per gtfs-realtime.proto TripDescriptor:
+	//   1: trip_id, 2: route_id, 3: direction_id,
+	//   4: start_time, 5: start_date, 6: schedule_relationship
 	if td.TripID != "" {
 		b = protowire.AppendTag(b, 1, protowire.BytesType)
 		b = protowire.AppendString(b, td.TripID)
 	}
-	if td.StartTime != "" {
-		b = protowire.AppendTag(b, 2, protowire.BytesType)
-		b = protowire.AppendString(b, td.StartTime)
-	}
-	if td.StartDate != "" {
-		b = protowire.AppendTag(b, 3, protowire.BytesType)
-		b = protowire.AppendString(b, td.StartDate)
-	}
-	if td.ScheduleRelationship != 0 {
-		b = protowire.AppendTag(b, 4, protowire.VarintType)
-		b = protowire.AppendVarint(b, uint64(td.ScheduleRelationship))
-	}
 	if td.RouteID != "" {
-		b = protowire.AppendTag(b, 5, protowire.BytesType)
+		b = protowire.AppendTag(b, 2, protowire.BytesType)
 		b = protowire.AppendString(b, td.RouteID)
 	}
 	if td.DirectionID != nil {
-		b = protowire.AppendTag(b, 6, protowire.VarintType)
+		b = protowire.AppendTag(b, 3, protowire.VarintType)
 		b = protowire.AppendVarint(b, uint64(*td.DirectionID))
+	}
+	if td.StartTime != "" {
+		b = protowire.AppendTag(b, 4, protowire.BytesType)
+		b = protowire.AppendString(b, td.StartTime)
+	}
+	if td.StartDate != "" {
+		b = protowire.AppendTag(b, 5, protowire.BytesType)
+		b = protowire.AppendString(b, td.StartDate)
+	}
+	if td.ScheduleRelationship != 0 {
+		b = protowire.AppendTag(b, 6, protowire.VarintType)
+		b = protowire.AppendVarint(b, uint64(td.ScheduleRelationship))
 	}
 	return b
 }

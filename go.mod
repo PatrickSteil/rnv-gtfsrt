@@ -1,6 +1,6 @@
 module github.com/PatrickSteil/rnv-gtfsrt
 
-go 1.25.1
+go 1.23
 
 require (
 	github.com/MobilityData/gtfs-realtime-bindings/golang/gtfs v1.0.0
