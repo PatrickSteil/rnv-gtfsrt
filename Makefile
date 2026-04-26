@@ -1,17 +1,18 @@
 BIN_DIR := bin
 
-.PHONY: all build server inspect clean
+.PHONY: all build server inspect tidy clean
 
 all: build
 
-build: server inspect
+build: tidy server inspect
+
+tidy:
+	go mod tidy
 
 server:
-	go mod tidy
 	go build -o $(BIN_DIR)/server ./cmd/server
 
 inspect:
-	go mod tidy
 	go build -o $(BIN_DIR)/inspect ./cmd/inspect
 
 clean:

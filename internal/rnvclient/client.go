@@ -14,7 +14,9 @@ import (
 	"time"
 )
 
-// Client is a thread-safe GraphQL client for the RNV API with integrated OAuth2.
+// Client is a thread-safe GraphQL client for the RNV API with integrated
+// OAuth2 token management. Tokens are cached and refreshed automatically
+// 60 seconds before expiry.
 type Client struct {
 	oauthURL     string
 	clientID     string
@@ -29,7 +31,8 @@ type Client struct {
 	tokenExpiry time.Time
 }
 
-// New creates a new Client.
+// New creates a Client configured with the given OAuth2 and API parameters.
+// The underlying HTTP client has a 30-second timeout.
 func New(oauthURL, clientID, clientSecret, resourceID, apiURL string) *Client {
 	return &Client{
 		oauthURL:     oauthURL,
@@ -205,6 +208,10 @@ query ActiveJourneys(
   }
 }`
 
+// ActiveJourneys fetches all journeys that overlap the time window
+// [now-windowBack, now+windowForward] from the RNV API, following pagination
+// cursors until all results have been collected or maxPages is exceeded.
+// Only realtime journeys are requested (source=REALTIMEONLY).
 func (c *Client) ActiveJourneys(
 	ctx context.Context,
 	now time.Time,

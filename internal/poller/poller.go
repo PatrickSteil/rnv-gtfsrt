@@ -21,11 +21,17 @@ const (
 	windowForward = 10 * time.Minute
 )
 
+// JourneySnapshot pairs a raw RNV API journey element with the time it was
+// fetched. It is stored by the Poller and served via the /data endpoint for
+// debugging and monitoring purposes.
 type JourneySnapshot struct {
 	FetchedAt time.Time         `json:"fetched_at"`
 	Journey   rnvclient.Element `json:"journey"`
 }
 
+// Poller periodically fetches occupancy data from the RNV API and maintains
+// the latest GTFS-RT feed in memory. It is safe for concurrent use; multiple
+// goroutines may call FeedBytes and RawData while Run is active.
 type Poller struct {
 	client   *rnvclient.Client
 	pageSize int
@@ -36,6 +42,8 @@ type Poller struct {
 	rawData  []JourneySnapshot // latest raw API data for /data endpoint
 }
 
+// New creates a Poller that fetches data using client. The page size for
+// paginated API requests defaults to 100.
 func New(client *rnvclient.Client) *Poller {
 	return &Poller{
 		client:   client,
@@ -43,6 +51,10 @@ func New(client *rnvclient.Client) *Poller {
 	}
 }
 
+// Run performs an initial poll immediately and then polls the RNV API on the
+// given interval until ctx is cancelled. Poll errors are logged but do not
+// stop the loop; the previous feed remains available until a successful poll
+// replaces it. Run blocks until the context is done.
 func (p *Poller) Run(ctx context.Context, interval time.Duration) {
 	slog.InfoContext(ctx, "poller starting",
 		"interval", interval,
@@ -71,12 +83,18 @@ func (p *Poller) Run(ctx context.Context, interval time.Duration) {
 	}
 }
 
+// FeedBytes returns the most recently serialised GTFS-RT protobuf payload and
+// the time it was built. Both return values are zero if no poll has succeeded
+// yet.
 func (p *Poller) FeedBytes() ([]byte, time.Time) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	return p.feed, p.feedTime
 }
 
+// RawData returns a snapshot of the raw journey data from the most recent
+// successful poll. The returned slice is a copy and is safe to use after the
+// call returns.
 func (p *Poller) RawData() []JourneySnapshot {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
@@ -99,7 +117,7 @@ func (p *Poller) poll(ctx context.Context) error {
 	fetchedAt := time.Now()
 
 	for _, j := range journeys {
-		entity, ok := buildEntity(j)
+		entity, ok := buildEntity(j, fetchedAt)
 		if !ok {
 			continue
 		}
@@ -131,13 +149,17 @@ func (p *Poller) poll(ctx context.Context) error {
 // to be considered INCOMING_AT rather than IN_TRANSIT_TO.
 const incomingAtThreshold = 30 * time.Second
 
-// StopMatch holds the result of the current-stop search.
+// StopMatch holds the result of the current-stop search for a journey.
 type StopMatch struct {
 	Seq    int    // 1-based stop sequence index
 	StopID string // station GlobalID
 	Status gtfsrt.VehicleStopStatus
 }
 
+// currentStop returns the stop the vehicle is nearest to at time now by
+// finding the stop whose earliest available timestamp (realtime or planned,
+// departure or arrival) is closest to now. If no timestamps are available,
+// it falls back to the first stop with InTransitTo status.
 func currentStop(stops []rnvclient.Stop, now time.Time) StopMatch {
 	if len(stops) == 0 {
 		return StopMatch{Seq: 1, Status: gtfsrt.InTransitTo}
@@ -265,6 +287,8 @@ func resolveTime(ref *rnvclient.Time) (time.Time, bool) {
 	return t, (err == nil)
 }
 
+// loadAtStop returns the Load entry for stopID if one exists, otherwise it
+// falls back to bestLoad. An empty stopID always falls back to bestLoad.
 func loadAtStop(loads []rnvclient.Load, stopID string) rnvclient.Load {
 	if stopID != "" {
 		for _, l := range loads {
@@ -275,7 +299,10 @@ func loadAtStop(loads []rnvclient.Load, stopID string) rnvclient.Load {
 	}
 	return bestLoad(loads)
 }
-func buildEntity(j rnvclient.Element) (gtfsrt.FeedEntity, bool) {
+// buildEntity converts a single RNV journey element into a GTFS-RT FeedEntity.
+// It returns false if the journey should be skipped (missing ID or no load
+// data). now is used to determine the vehicle's current stop status.
+func buildEntity(j rnvclient.Element, now time.Time) (gtfsrt.FeedEntity, bool) {
 	if j.ID == "" {
 		return gtfsrt.FeedEntity{}, false
 	}
@@ -285,7 +312,6 @@ func buildEntity(j rnvclient.Element) (gtfsrt.FeedEntity, bool) {
 	}
 
 	// Find the current stop first so we can look up the matching load.
-	now := time.Now()
 	match := currentStop(j.Stops, now)
 
 	// Load at the current stop — falls back to bestLoad if no match.
@@ -340,7 +366,13 @@ func buildEntity(j rnvclient.Element) (gtfsrt.FeedEntity, bool) {
 	}, true
 }
 
+// bestLoad selects the most informative Load from a non-empty slice.
+// Realtime loads are preferred over forecast-only loads; among equal
+// realtime availability the load with the highest Ratio is chosen.
 func bestLoad(loads []rnvclient.Load) rnvclient.Load {
+	if len(loads) == 0 {
+		return rnvclient.Load{}
+	}
 	best := loads[0]
 	for _, l := range loads[1:] {
 		bestHasRT := best.Realtime != nil

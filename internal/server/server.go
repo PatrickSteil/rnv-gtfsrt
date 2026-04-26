@@ -1,3 +1,6 @@
+// Package server provides the HTTP server that exposes the GTFS-RT feed and
+// supporting endpoints. All handlers are read-only and stateless; they delegate
+// to the Poller for the current data.
 package server
 
 import (
@@ -10,11 +13,13 @@ import (
 	"github.com/PatrickSteil/rnv-gtfsrt/internal/poller"
 )
 
+// Server wraps a Poller and exposes its data over HTTP.
 type Server struct {
 	p   *poller.Poller
 	mux *http.ServeMux
 }
 
+// New creates a Server backed by the given Poller and registers all routes.
 func New(p *poller.Poller) *Server {
 	s := &Server{p: p, mux: http.NewServeMux()}
 	s.routes()
@@ -57,10 +62,14 @@ func (s *Server) routes() {
 	})
 }
 
+// Handler returns the root HTTP handler with logging middleware applied.
+// Pass this to http.Server.Handler.
 func (s *Server) Handler() http.Handler {
 	return loggingMiddleware(s.mux)
 }
 
+// handleFeed serves the GTFS-RT protobuf feed at GET /gtfs-rt.
+// Returns 503 if no poll has succeeded yet.
 func (s *Server) handleFeed(w http.ResponseWriter, r *http.Request) {
 	feed, feedTime := s.p.FeedBytes()
 	if feed == nil {
@@ -76,6 +85,9 @@ func (s *Server) handleFeed(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// handleData serves the raw journey snapshots as JSON at GET /data.
+// Accepts an optional ?pretty query parameter for indented output.
+// Returns 503 if no poll has succeeded yet.
 func (s *Server) handleData(w http.ResponseWriter, r *http.Request) {
 	snapshots := s.p.RawData()
 	if len(snapshots) == 0 {
@@ -104,6 +116,8 @@ func (s *Server) handleData(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// handleStatus serves a JSON summary of the feed state at GET /status,
+// including feed age, entity count, and a breakdown of load types seen.
 func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 	feed, feedTime := s.p.FeedBytes()
 	snapshots := s.p.RawData()

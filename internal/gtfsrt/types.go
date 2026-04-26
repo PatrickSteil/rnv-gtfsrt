@@ -26,6 +26,8 @@ import "time"
 // -----------------------------------------------------------------------
 
 // Incrementality mirrors the proto enum FeedHeader.Incrementality.
+// FULL_DATASET (0) means the feed replaces all prior knowledge of the entity.
+// DIFFERENTIAL (1) means only changed entities are included.
 type Incrementality int32
 
 const (
@@ -48,6 +50,7 @@ const (
 )
 
 // ScheduleRelationship mirrors proto enum TripDescriptor.ScheduleRelationship.
+// It describes how a trip relates to the static GTFS schedule.
 type ScheduleRelationship int32
 
 const (
@@ -119,7 +122,8 @@ type TripDescriptor struct {
 // Helper constructors
 // -----------------------------------------------------------------------
 
-// NewFeedMessage initialises a FeedMessage with a correct header timestamp.
+// NewFeedMessage initialises a FeedMessage with a GTFS-RT 2.0 header and
+// a timestamp set to the current UTC Unix time.
 func NewFeedMessage() *FeedMessage {
 	ts := uint64(time.Now().Unix())
 	return &FeedMessage{

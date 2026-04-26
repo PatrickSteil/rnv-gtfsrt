@@ -13,7 +13,7 @@ This project polls the RNV OpenData API for vehicle occupancy data and exposes i
 - Minimal dependencies and straightforward setup
 
 ## Requirements
-- Go (1.20+ recommended)
+- Go 1.23+
 - RNV API credentials:
   - OAuth URL
   - Client ID
@@ -30,8 +30,8 @@ export RNV_CLIENT_ID=<client-id>
 export RNV_CLIENT_SECRET=<client-secret>
 export RNV_RESOURCE_ID=<resource-id>
 export RNV_API_URL=<api-url>
-export RNV_POLL_INTERVAL=60 (optional)
-export RNV_LISTEN_ADDR=8080 (optional)
+export RNV_POLL_INTERVAL=60s  # optional, default: 30s
+export RNV_LISTEN_ADDR=:8080  # optional, default: :8080
 ```
 
 Building the executables
